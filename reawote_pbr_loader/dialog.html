@@ -1,0 +1,305 @@
+<html>
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;500&display=swap" rel="stylesheet">
+  <script>
+    function onClickButton() {
+      sketchup.browseFolder();
+    }
+
+    function browseModel() {
+      sketchup.browseModel();
+    }
+
+    function selectNewFolder() {
+      sketchup.browseNewFolder();
+    }
+
+    function updateFolderPath(path) {
+      document.getElementById('folderPath').innerText = path;
+      sketchup.listSubfolders(path);
+    }
+
+    function populateSubfolderList(subfolders) {
+      document.querySelectorAll('select, input[type="checkbox"], button').forEach(element => {
+        element.disabled = false;
+      });
+
+      document.querySelector('button[onclick="onClickButton()"]').disabled = true;
+      document.querySelector('button[onclick="browseModel()"]').disabled = true;
+
+      document.getElementById('loadAO').checked = true;
+      document.getElementById('loadDisp').checked = true;
+      document.getElementById('load16Disp').checked = true;
+      document.getElementById('load16Nrm').checked = true;
+
+      var list = document.getElementById('subfolderList');
+      list.innerHTML = '';
+      subfolders.forEach(function(subfolder, index) {
+        var item = document.createElement('div');
+        item.className = 'checkbox-row';
+        item.innerHTML = '<input type="checkbox" id="' + subfolder + 
+                          '"><label for="' + subfolder + '">' + subfolder + '</label>';
+        list.appendChild(item);
+
+        item.addEventListener('click', function() {
+          sketchup.subfolderSelected(subfolder, index);
+        });
+      });
+    }
+
+    function addFolderToSubfolderList(subfolders) {
+      var list = document.getElementById('subfolderList');
+      var existingItemsCount = list.children.length;
+      subfolders.forEach(function(subfolder, index) {
+        var item = document.createElement('div');
+        item.className = 'checkbox-row';
+        item.innerHTML = '<input type="checkbox" id="' + subfolder + 
+                          '"><label for="' + subfolder + '">' + subfolder + '</label>';
+        list.appendChild(item);
+
+        item.addEventListener('click', function() {
+          sketchup.subfolderSelected(subfolder, index + existingItemsCount);
+        });
+      });
+    }
+
+    function clearList() {
+      var list = document.getElementById('subfolderList');
+      list.innerHTML = '';
+    }
+
+    function selectAllSubfolders() {
+      var checkboxes = document.querySelectorAll('#subfolderList .checkbox-row input[type="checkbox"]');
+      var allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+
+      checkboxes.forEach(function(checkbox) {
+        checkbox.checked = !allChecked;
+      });
+    }
+
+    function refreshSubfolderList() {
+      sketchup.refreshAllSubfolderLists();
+    }
+
+    function cleanPlugin() {
+      clearList();
+      document.getElementById('loadAO').checked = false;
+      document.getElementById('loadDisp').checked = false;
+      document.getElementById('load16Disp').checked = false;
+      document.getElementById('load16Nrm').checked = false;
+      document.getElementById('materialPreview').style.display = 'none';
+      document.getElementById('folderPath').innerText = "";
+      document.querySelectorAll('select, input[type="checkbox"], button').forEach(element => {
+        element.disabled = true;
+      });
+
+      document.querySelector('button[onclick="onClickButton()"]').disabled = false;
+      document.querySelector('button[onclick="browseModel()"]').disabled = false;
+
+      sketchup.clearInitialSelection();
+    }
+
+    function updateMaterialPreviewImage(imagePath, subfolderName) {
+      var previewSection = document.getElementById('materialPreview');
+      var previewImage = document.getElementById('materialPreviewImage');
+      var subfolderNameElement = document.getElementById('subfolderName');
+
+      previewImage.src = imagePath;
+
+      subfolderNameElement.textContent = subfolderName;
+
+      previewSection.style.display = 'block';
+    }
+
+    function loadMaterials() {
+      var load16NrmState = document.getElementById('load16Nrm').checked;
+      var loadDispState = document.getElementById('loadDisp').checked;
+      var load16DispState = document.getElementById('load16Disp').checked;
+      var loadAOState = document.getElementById('loadAO').checked;
+      sketchup.setLoad16NrmState(load16NrmState.toString());
+      sketchup.setLoadDispState(loadDispState.toString());
+      sketchup.setLoad16DispState(load16DispState.toString());
+      sketchup.setLoadAOState(loadAOState.toString());
+      document.querySelectorAll('#subfolderList .checkbox-row input[type="checkbox"]').forEach(function(checkbox) {
+        if (checkbox.checked) {
+          var subfolderName = checkbox.id;
+          sketchup.createVrayMaterial(subfolderName);
+        }
+      });
+    }
+
+
+  </script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 300;
+      background-color: #f6f6f9;
+    }
+
+    .row {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .label {
+      width: 30%;
+      text-align: left;
+    }
+    button {
+      background-color: #3d4574;
+      color: #f6f6f9;
+      font-family: 'Poppins', sans-serif;
+      border:none;
+      border-radius: 5px;
+      cursor: pointer;
+      padding: 5px;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: default;
+    }
+    select{
+      font-family: 'Poppins', sans-serif;
+    }
+    .input {
+      width: 40%;
+      text-align: right;
+    }
+    .input button, .input select {
+      width: 100%;
+    }
+    .checkbox-row {
+      display: flex;
+      text-align: left;
+      margin-top: 5px;
+      margin-bottom: 10px;
+    }
+    .button-row {
+      justify-content: flex-start;
+      text-align: left;
+    }
+    .subfolder-list {
+      height: 280px;
+      overflow-x: auto;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      padding: 5px;
+      background-color: white;
+    }
+
+    .checkbox-row {
+      white-space: nowrap;
+      min-width: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .material-preview {
+      text-align: left;
+      padding-top: 10px;
+    }
+
+    .material-preview img{
+      border: 1px solid #ccc;
+    }
+
+    #subfolderName {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 490px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    }
+
+    .full-width-button {
+      width: 100%;
+    }
+
+  </style>
+</head>
+<body style="text-align: center; padding: 10px;">
+
+  <div class="row">
+    <div class="label">
+      <label>Material Folder:</label>
+    </div>
+    <div class="input">
+      <button onclick="onClickButton()">Browse Material</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="label">
+      <label>Model Folder:</label>
+    </div>
+    <div class="input">
+      <button onclick="browseModel()">Browse Model</button>
+    </div>
+  </div>
+  
+
+  <!-- <div class="row">
+    <div class="label">
+      <label>Select Renderer:</label>
+    </div>
+    <div class="input">
+      <select disabled>
+        <option value="corona">Corona</option>
+        <option value="vray">VRay</option>
+      </select>
+    </div>
+  </div> -->
+
+  <div class="row">
+    <div id="folderPath" style="font-size: 14px; flex: 1; text-align: left;">
+    </div>
+  </div>
+
+  <div class="checkbox-row">
+    <input type="checkbox" id="loadAO" disabled>
+    <label for="loadAO">Include ambient occlusion (AO) maps</label>
+  </div>
+
+  <div class="checkbox-row">
+    <input type="checkbox" id="loadDisp" disabled>
+    <label for="loadDisp">Include displacement maps</label>
+  </div>
+
+  <div class="checkbox-row">
+    <input type="checkbox" id="load16Disp" disabled>
+    <label for="load16Disp">Use 16 bit displacement maps (when available)</label>
+  </div>
+
+  <div class="checkbox-row">
+    <input type="checkbox" id="load16Nrm" disabled>
+    <label for="load16Nrm">Use 16 bit normal maps (when available)</label>
+  </div>
+
+  <div class="row">
+    <button id="btnLoadMaterials" class="full-width-button" onclick="loadMaterials()" disabled>Load Materials</button>
+  </div>
+
+  <div class="button-row">
+    <button id="btnSelectAll" onclick="selectAllSubfolders()" disabled>Select All</button>
+      <button id="btnRefresh" onclick="refreshSubfolderList()" disabled>Refresh</button>
+    <button id="btnAddToQueue" onclick="selectNewFolder()" disabled>Add To Queue</button>
+    <button id="btnClean" onclick="cleanPlugin()" disabled>Clean</button>
+  </div>
+
+  <div id="subfolderList" class="subfolder-list">
+  </div>
+
+  <div id="materialPreview" class="material-preview" style="display: none;">
+    <img id="materialPreviewImage" src="" alt="Material Preview" style="max-width: 100%; max-height: 85px; display: inline-block; vertical-align: middle;" />
+    <span id="subfolderName" style="display: inline-block; vertical-align: middle;"></span>
+  </div>
+  
+  
+  
+  </body>
+</html>
