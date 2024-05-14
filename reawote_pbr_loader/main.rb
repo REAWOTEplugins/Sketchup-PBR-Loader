@@ -72,9 +72,11 @@ module Reawote
         elsif vrmesh_files.empty?
           UI.messagebox("No VRMesh found found in the selected folder.")
         else
+          puts "Tohle jsou vrmesh_files: #{vrmesh_files}"
+          puts "Tohle jsou skp_files: #{skp_files}"
           skp_file = skp_files.first
-          vrmesh_file = vrmesh_files.first
-          file_name = File.basename(vrmesh_file, ".*")
+          # vrmesh_file = vrmesh_files.first
+          # file_name = File.basename(vrmesh_file, ".*")
 
           # message += "Importing SketchUp document: #{File.basename(skp_file)}"
           # UI.messagebox(message)
@@ -83,7 +85,7 @@ module Reawote
           definitions = model.definitions
           begin
             model.start_operation('Import SKP', true)
-            componentdefinition = definitions.load(skp_file)
+            componentdefinition = definitions.load(skp_file, allow_newer: true)
             if componentdefinition
               instance = model.active_entities.add_instance(componentdefinition, IDENTITY)
               context = VRay::Context.active
@@ -91,14 +93,23 @@ module Reawote
               scene = context.scene
               renderer = context.renderer
               scene.change do
-                vrmesh_path = "/#{file_name}"
-                vrmesh = scene["/#{file_name}"]
-                unless vrmesh
-                  UI.messagebox("Please import the model before launching V-Ray. Restart SketchUp and import the model prior to opening any V-Ray interfaces.")
-                  model.abort_operation
-                  return
+
+                for vrmesh_file in vrmesh_files
+                  file_name = File.basename(vrmesh_file, ".*")
+                  vrmesh_path = "/#{file_name}"
+                  vrmesh = scene["/#{file_name}"]
+                  unless vrmesh
+                    UI.messagebox("Please import the model before launching V-Ray. Restart SketchUp and import the model prior to opening any V-Ray interfaces.")
+                    model.abort_operation
+                    return
+                  end
+                  vrmesh[:file] = vrmesh_file
+                  puts ""
+                  puts "Tohle je vrmesh_path: #{vrmesh_path}"
+                  puts "Tohle je vrmesh file: #{vrmesh[:file]}"
+                  puts "A tohle je basename ktere jsem vytahl z vrmesh_file: #{File.basename(vrmesh_file, ".*")}"
                 end
-                vrmesh[:file] = vrmesh_file
+
                 materials = model.materials
                 for material in materials
                   material_name = material.name
