@@ -110,15 +110,20 @@ module Reawote
                   puts "A tohle je basename ktere jsem vytahl z vrmesh_file: #{File.basename(vrmesh_file, ".*")}"
                 end
 
+                puts " "
                 materials = model.materials
                 for material in materials
+                  puts " "
                   material_name = material.name
-                  if material_name.include?(file_name)
+                  puts "Tohle je material_name: #{material_name}"
+                  puts "Tohle je file_name: #{file_name}"
+                  #if material_name.include?(file_name)
                     material_plugin_path = "/#{material_name}"
                     material_plugin = scene[material_plugin_path]
-
+                    puts "Tohle je material_plugin_path"
                     diffuse_tex = scene["/#{material_name}/Base/VRayBRDF/diffuseTexBitmap/BitmapBuffer"]
                     if diffuse_tex
+                      puts "Tenhle material #{material_name} ma diffuse_tex"
                       diffuse_tex_file_name = diffuse_tex[:file]
                       separator = diffuse_tex_file_name.include?('\\') ? '\\' : '/'
                       path_parts = diffuse_tex_file_name.split(separator)
@@ -160,8 +165,9 @@ module Reawote
                       displacement_tex_path = matching_files.first
                       displacement_tex[:file] = displacement_tex_path
                     end
-                  end
+                  #end
                 end
+
               end
               
               @@dialog.close
