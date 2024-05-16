@@ -165,7 +165,20 @@ module Reawote
                       displacement_tex_path = matching_files.first
                       displacement_tex[:file] = displacement_tex_path
                     end
-                  #end
+
+                    metallness_tex = scene["/#{material_name}/Base/VRayBRDF/metalnessTexBitmap/Bitmap"]
+                    if metallness_tex
+                      metallness_tex_file_name = metallness_tex[:file]
+                      separator = metallness_tex_file_name.include?('\\') ? '\\' : '/'
+                      path_parts = metallness_tex_file_name.split(separator)
+                      metallness_tex_base = path_parts[-1]
+                      matching_files = Dir.glob(File.join(selected_model_folder, "**", "*#{metallness_tex_base}"))
+                      mettalness_tex_path = matching_files.first
+                      metallness_tex[:file] = mettalness_tex_path
+                    end
+
+                    reflection_tex = scene["/#{material_name}/Base/VRayBRDF/reflectionTexBitmap/BitmapBuffer"]
+                    assign_mat_properties(reflection_tex, selected_model_folder)
                 end
 
               end
@@ -182,6 +195,18 @@ module Reawote
         end
       else
         UI.messagebox("No folder selected.")
+      end
+    end
+
+    def self.assign_mat_properties(tex, model_folder)
+      if tex
+        tex_file_name = tex[:file]
+        separator = tex_file_name.include?('\\') ? '\\' : '/'
+        path_parts = tex_file_name.split(separator)
+        tex_base = path_parts[-1]
+        matching_files = Dir.glob(File.join(model_folder, "**", "*#{tex_base}"))
+        tex_path = matching_files.first
+        tex[:file] = tex_path
       end
     end
 
